@@ -1,4 +1,4 @@
-from flask import Flask, render_template, url_for
+from flask import Flask, render_template, url_for, request
 import os
 from dotenv import load_dotenv
 from werkzeug.routing import BaseConverter
@@ -25,9 +25,25 @@ def index():
     return render_template('index.html')
 
 
-@app.route('/<regex(".*"):path>', methods=['put'])
+@app.route('/<regex(".*"):path>', methods=['put', 'get', 'head', 'delete'])
 def upload(path):
-    return path
+    if request.method == 'PUT':
+        path = str(path).replace('/', '\\')
+        pos = path.rindex('\\')
+        file = path[pos + 1:]
+        path = path[:pos]
+        file_path = os.path.join(path)
+        os.makedirs(file_path, exist_ok=True)
+        cat = os.getcwd()
+        os.chdir(path)
+
+        ffile = open(file, "w")
+        ffile.close()
+
+        os.chdir(cat)
+        return 'File created!'
+
+
 
 
 @app.errorhandler(404)
