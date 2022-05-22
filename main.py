@@ -9,14 +9,14 @@ DEFAULT_PORT = 8000
 
 
 class RegexConverter(BaseConverter):
-    def __init__(self, map, *args):
+    def __init__(self, map, *args, **kwargs):
+        super().__init__(map, *args, **kwargs)
         self.map = map
         self.regex = args[0]
 
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('api_key')
-app.config['UPLOAD_FOLDER'] = 'static/downloads'
 app.url_map.converters['regex'] = RegexConverter
 
 
@@ -69,6 +69,25 @@ def upload(path):
             files = json.dumps(os.listdir(os.getcwd()))
             os.chdir(dirr)
             return files
+
+    # Show file info
+    elif request.method == 'HEAD':
+        file = ''
+        try:
+            pos = str(path).rindex('\\')
+            file = path[pos + 1:]
+            if '.' not in file:
+                file = ''
+        except ValueError:
+            ...
+
+        dirr = os.getcwd()
+        os.chdir(path)
+        return 'File info'
+
+    # Delete selected file / catalogue
+    elif request.method == 'DELETE':
+        ...
 
 
 @app.errorhandler(404)
