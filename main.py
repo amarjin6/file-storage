@@ -2,6 +2,7 @@ from flask import Flask, render_template, url_for, request
 import os
 import json
 import wget
+import shutil
 from werkzeug.routing import BaseConverter
 
 DEFAULT_HOST = '127.0.0.1'
@@ -87,7 +88,13 @@ def upload(path):
 
     # Delete selected file / catalogue
     elif request.method == 'DELETE':
-        ...
+        if '.' in path:
+            os.remove(path=os.getcwd() + '\\' + path)
+
+        else:
+            shutil.rmtree(os.getcwd() + '\\' + path, ignore_errors=True)
+
+        return 'Removed successfully!'
 
 
 @app.errorhandler(404)
