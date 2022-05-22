@@ -48,7 +48,8 @@ def upload(path):
         os.chdir(dirr)
         return 'File created!'
 
-    elif request.method == 'GETS':
+    elif request.method == 'GET':
+        # Extract file from path
         file = ''
         try:
             pos = str(path).rindex('\\')
@@ -91,11 +92,13 @@ def upload(path):
         return 'Removed successfully!'
 
 
+# Process 404 Error
 @app.errorhandler(404)
 def not_found(e):
     return '404 Not Found'
 
 
+# Process 400 Error
 @app.errorhandler(400)
 def bad_request(e):
     return '400 Bad Request'
