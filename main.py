@@ -1,17 +1,17 @@
 from flask import Flask, render_template, url_for, request
 import os
-from dotenv import load_dotenv
+import json
+import wget
 from werkzeug.routing import BaseConverter
+
+DEFAULT_HOST = '127.0.0.1'
+DEFAULT_PORT = 8000
 
 
 class RegexConverter(BaseConverter):
     def __init__(self, map, *args):
         self.map = map
         self.regex = args[0]
-
-
-def configure():
-    load_dotenv()
 
 
 app = Flask(__name__)
@@ -21,29 +21,54 @@ app.url_map.converters['regex'] = RegexConverter
 
 
 @app.route('/home', methods=['get'])
+@app.route('/', methods=['get'])
 def index():
     return render_template('index.html')
 
 
 @app.route('/<regex(".*"):path>', methods=['put', 'get', 'head', 'delete'])
 def upload(path):
+    # Convert path
+    path = str(path).replace('/', '\\')
+
+    # Upload files with overwriting
     if request.method == 'PUT':
-        path = str(path).replace('/', '\\')
         pos = path.rindex('\\')
         file = path[pos + 1:]
-        path = path[:pos]
-        file_path = os.path.join(path)
-        os.makedirs(file_path, exist_ok=True)
-        cat = os.getcwd()
-        os.chdir(path)
+        newPath = path[:pos]
+        os.makedirs(newPath, exist_ok=True)
+        dirr = os.getcwd()
+        os.chdir(newPath)
 
         ffile = open(file, "w")
         ffile.close()
 
-        os.chdir(cat)
+        os.chdir(dirr)
         return 'File created!'
 
+    elif request.method == 'GET':
+        file = ''
+        try:
+            pos = str(path).rindex('\\')
+            file = path[pos + 1:]
+            if '.' not in file:
+                file = ''
+        except ValueError:
+            ...
 
+        # Download file
+        if file:
+            link = path.replace('\\', '/')
+            wget.download('http://' + DEFAULT_HOST + ':' + str(DEFAULT_PORT) + '/' + link)
+            return 'File successfully downloaded!'
+
+        # Show all files in catalogue
+        else:
+            dirr = os.getcwd()
+            os.chdir(path)
+            files = json.dumps(os.listdir(os.getcwd()))
+            os.chdir(dirr)
+            return files
 
 
 @app.errorhandler(404)
@@ -57,5 +82,4 @@ def bad_request(e):
 
 
 if __name__ == '__main__':
-    configure()
-    app.run(debug=True)
+    app.run(DEFAULT_HOST, DEFAULT_PORT, debug=True, load_dotenv=True)
