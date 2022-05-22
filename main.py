@@ -3,6 +3,7 @@ import os
 import json
 import wget
 import shutil
+import time
 from werkzeug.routing import BaseConverter
 
 DEFAULT_HOST = '127.0.0.1'
@@ -47,7 +48,7 @@ def upload(path):
         os.chdir(dirr)
         return 'File created!'
 
-    elif request.method == 'GET':
+    elif request.method == 'GETS':
         file = ''
         try:
             pos = str(path).rindex('\\')
@@ -73,18 +74,11 @@ def upload(path):
 
     # Show file info
     elif request.method == 'HEAD':
-        file = ''
-        try:
-            pos = str(path).rindex('\\')
-            file = path[pos + 1:]
-            if '.' not in file:
-                file = ''
-        except ValueError:
-            ...
-
-        dirr = os.getcwd()
-        os.chdir(path)
-        return 'File info'
+        file_stats = os.stat(os.getcwd() + '\\' + path)
+        status = json.dumps(
+            {'size': file_stats.st_size, 'last modified': time.ctime(os.path.getmtime(os.getcwd() + '\\' + path)),
+             'create': time.ctime(os.path.getctime(os.getcwd() + '\\' + path)), 'permissions': file_stats.st_mode})
+        return status
 
     # Delete selected file / catalogue
     elif request.method == 'DELETE':
