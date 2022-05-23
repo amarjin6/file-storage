@@ -10,13 +10,14 @@
 
 Implement a remote file storage that provides a REST API over the HTTP protocol. When implementing, it is allowed to use a web framework that implements HTTP routing and work with HTTP calls. The request URL path defines the logical location of the file in the repository: **http://storage.com/path/to/file.txt** - describes the file file.txt located at /path/to.
 List of supported features:
-· uploading a file to storage with overwriting using the PUT method;
-· getting a file from storage using the GET method;
-· getting a list of directory files using the GET method (it is recommended to use JSON as the data format
+* uploading a file to storage with overwriting using the PUT method;
+* getting a file from storage using the GET method;
+* getting a list of directory files using the GET method (it is recommended to use JSON as the data format
   for the response);
-· getting information about the file (size in bytes and date of last modification) in the form of HTTP headers
+* getting information about the file (size in bytes and date of last modification) in the form of HTTP headers
   without getting the file content using the HEAD method;
-· deleting a file/directory from storage using the DELETE method.
+* deleting a file/directory from storage using the DELETE method.
+
 HTTP status codes must be used correctly.
 
 ## ⚒️**How to Run**⚒️
@@ -158,5 +159,7 @@ If the request succeeds the server returns the HTTP 200 OK status code.
   404 - Not found
 
 ## 🥽**Preview**🥽
+
+![preview](https://user-images.githubusercontent.com/86531927/169858739-bd33f46d-8a3e-47a0-b2fa-8221ac7c28fa.jpg)
 
 # Flask REST API HTTP
