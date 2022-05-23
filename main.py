@@ -2,7 +2,6 @@ import flask
 from flask import Flask, render_template, url_for, request
 import os
 import json
-import wget
 import shutil
 import time
 from werkzeug.routing import BaseConverter
@@ -21,7 +20,6 @@ class RegexConverter(BaseConverter):
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('api_key')
 app.url_map.converters['regex'] = RegexConverter
-app.config['UPLOAD_FOLDER'] = 'downloads/'
 
 
 @app.route('/home', methods=['get'])
@@ -53,6 +51,7 @@ def main(path):
     elif request.method == 'GET':
         # Extract file from path
         file = path.find('.')
+
         # Download file
         if file >= 0:
             dirr = os.getcwd()
@@ -64,12 +63,10 @@ def main(path):
             except ValueError:
                 ffile = path
 
-            print(ffile)
             os.chdir(os.getcwd() + '\\' + path[:pos])
             with open(ffile, 'r') as f:
                 data = f.readlines()
 
-            print(data)
             os.chdir(dirr)
             with open(ffile, 'w') as f:
                 f.writelines(data)
@@ -86,16 +83,12 @@ def main(path):
 
     # Show file info
     elif request.method == 'HEAD':
-
         file_stats = os.stat(os.getcwd() + '\\' + path)
-        status = {'size': file_stats.st_size, 'last modified': time.ctime(os.path.getmtime(os.getcwd() + '\\' + path)),
-                  'create': time.ctime(os.path.getctime(os.getcwd() + '\\' + path)), 'permissions': file_stats.st_mode}
-
         resp = flask.Response()
-        resp.headers['size'] = status['si., mn\]-ze']
-        resp.headers['last-modified'] = status['last modified']
-        resp.headers['create'] = status['create']
-        resp.headers['permissions'] = status['permissions']
+        resp.headers['Size'] = str(file_stats.st_size) + 'b'
+        resp.headers['Last-modified'] = time.ctime(os.path.getmtime(os.getcwd() + '\\' + path))
+        resp.headers['Created'] = time.ctime(os.path.getctime(os.getcwd() + '\\' + path))
+        resp.headers['Permissions'] = file_stats.st_mode
         return resp
 
     # Delete selected file / catalogue
