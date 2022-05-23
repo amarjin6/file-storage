@@ -32,6 +32,7 @@ def index():
 def main(path):
     # Convert path
     path = str(path).replace('/', '\\')
+
     # Upload files with overwriting
     if request.method == 'PUT':
         content = request.get_data()
