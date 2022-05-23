@@ -1,3 +1,4 @@
+import flask
 from flask import Flask, render_template, url_for, request
 import os
 import json
@@ -6,7 +7,7 @@ import shutil
 import time
 from werkzeug.routing import BaseConverter
 
-DEFAULT_HOST = '127.0.0.1'
+DEFAULT_HOST = 'localhost'
 DEFAULT_PORT = 8000
 
 
@@ -20,6 +21,7 @@ class RegexConverter(BaseConverter):
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('api_key')
 app.url_map.converters['regex'] = RegexConverter
+app.config['UPLOAD_FOLDER'] = 'downloads/'
 
 
 @app.route('/home', methods=['get'])
@@ -29,12 +31,12 @@ def index():
 
 
 @app.route('/<regex(".*"):path>', methods=['put', 'get', 'head', 'delete'])
-def upload(path):
+def main(path):
     # Convert path
     path = str(path).replace('/', '\\')
-
     # Upload files with overwriting
     if request.method == 'PUT':
+        content = request.get_data()
         pos = path.rindex('\\')
         file = path[pos + 1:]
         newPath = path[:pos]
@@ -42,44 +44,59 @@ def upload(path):
         dirr = os.getcwd()
         os.chdir(newPath)
 
-        ffile = open(file, "w")
-        ffile.close()
+        with open(file, "wb") as f:
+            f.write(content)
 
         os.chdir(dirr)
         return 'File created!'
 
     elif request.method == 'GET':
         # Extract file from path
-        file = ''
-        try:
-            pos = str(path).rindex('\\')
-            file = path[pos + 1:]
-            if '.' not in file:
-                file = ''
-        except ValueError:
-            ...
-
+        file = path.find('.')
         # Download file
-        if file:
-            link = path.replace('\\', '/')
-            wget.download('http://' + DEFAULT_HOST + ':' + str(DEFAULT_PORT) + '/' + link)
+        if file >= 0:
+            dirr = os.getcwd()
+            ffile = ''
+            pos = 0
+            try:
+                pos = path.rindex('\\')
+                ffile = path[pos + 1:]
+            except ValueError:
+                ffile = path
+
+            print(ffile)
+            os.chdir(os.getcwd() + '\\' + path[:pos])
+            with open(ffile, 'r') as f:
+                data = f.readlines()
+
+            print(data)
+            os.chdir(dirr)
+            with open(ffile, 'w') as f:
+                f.writelines(data)
+
             return 'File successfully downloaded!'
 
         # Show all files in catalogue
         else:
             dirr = os.getcwd()
-            os.chdir(path)
+            os.chdir(os.getcwd() + '\\' + path)
             files = json.dumps(os.listdir(os.getcwd()))
             os.chdir(dirr)
             return files
 
     # Show file info
     elif request.method == 'HEAD':
+
         file_stats = os.stat(os.getcwd() + '\\' + path)
-        status = json.dumps(
-            {'size': file_stats.st_size, 'last modified': time.ctime(os.path.getmtime(os.getcwd() + '\\' + path)),
-             'create': time.ctime(os.path.getctime(os.getcwd() + '\\' + path)), 'permissions': file_stats.st_mode})
-        return status
+        status = {'size': file_stats.st_size, 'last modified': time.ctime(os.path.getmtime(os.getcwd() + '\\' + path)),
+                  'create': time.ctime(os.path.getctime(os.getcwd() + '\\' + path)), 'permissions': file_stats.st_mode}
+
+        resp = flask.Response()
+        resp.headers['size'] = status['si., mn\]-ze']
+        resp.headers['last-modified'] = status['last modified']
+        resp.headers['create'] = status['create']
+        resp.headers['permissions'] = status['permissions']
+        return resp
 
     # Delete selected file / catalogue
     elif request.method == 'DELETE':
@@ -87,7 +104,7 @@ def upload(path):
             os.remove(path=os.getcwd() + '\\' + path)
 
         else:
-            shutil.rmtree(os.getcwd() + '\\' + path, ignore_errors=True)
+            shutil.rmtree(os.getcwd() + '\\' + path, ignore_errors=False)
 
         return 'Removed successfully!'
 
